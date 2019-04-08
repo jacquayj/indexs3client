@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -61,11 +60,11 @@ func GetChunkDataFromS3(client *AwsClient, bucket string, key string, byteRange 
 		}
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return body, nil
+	// body, err := ioutil.ReadAll(result.Body)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+	return nil, nil
 
 }
 
