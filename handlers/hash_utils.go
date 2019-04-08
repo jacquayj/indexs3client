@@ -74,7 +74,9 @@ func CalculateBasicHashes(client *AwsClient, bucket string, key string) (*HashIn
 			return nil, -1, err
 		}
 
-		hashCollection, err = UpdateBasicHashes(hashCollection, buff)
+		log.Print(len(buff))
+
+		//hashCollection, err = UpdateBasicHashes(hashCollection, buff)
 
 		if err != nil {
 			log.Printf("Can not compute hashes. Detail %s\n\n", err)
