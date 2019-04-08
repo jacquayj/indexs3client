@@ -44,7 +44,7 @@ func GetChunkDataFromS3(client *AwsClient, bucket string, key string, byteRange 
 		Range:  aws.String(byteRange),
 	}
 
-	result, err := svc.GetObject(input)
+	_, err := svc.GetObject(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
