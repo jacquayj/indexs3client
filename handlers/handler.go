@@ -75,6 +75,7 @@ func IndexS3Object(s3objectURL string) {
 		return
 	}
 	log.Printf("Finish to compute hashes for %s", key)
+	log.Println(hashes.Md5)
 
 	indexdInfo, _ := getIndexServiceInfo()
 	rev, err := GetIndexdRecordRev(uuid, indexdInfo.URL)
