@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-const ChunkSize = 1024 * 1024 * 64
+const ChunkSize = 1024 * 1024 * 4
 
 type HashInfo struct {
 	Crc32c string
@@ -78,29 +78,22 @@ func CalculateBasicHashes(client *AwsClient, bucket string, key string) (*HashIn
 	}
 	log.Printf("Size %d", *objectSize)
 
-	start := int64(0)
-	step := int64(ChunkSize)
-	for {
-		PrintMemUsage()
-		log.Printf("bytes: %d-%d", start, minOf(start+step, *objectSize-1))
-		chunkRange := fmt.Sprintf("bytes: %d-%d", start, minOf(start+step, *objectSize-1))
+	result, _ := GetS3ObjectOutput(client, bucket, key)
+	p := make([]byte, ChunkSize)
 
-		_, err := GetChunkDataFromS3(client, bucket, key, chunkRange)
+	for {
+		n, err := result.Body.Read(p)
 		if err != nil {
-			log.Printf("Can not stream chunk data of %s. Detail %s\n\n", key, err)
-			return nil, -1, err
+			if err == io.EOF {
+				hashCollection, err = UpdateBasicHashes(hashCollection, p[:n])
+				break
+			}
+			return nil, int64(-1), err
 		}
 
-		//log.Print(len(buff))
-
-		//hashCollection, err = UpdateBasicHashes(hashCollection, buff)
-
+		hashCollection, err = UpdateBasicHashes(hashCollection, p[:n])
 		if err != nil {
 			log.Printf("Can not compute hashes. Detail %s\n\n", err)
-		}
-		start = minOf(start+step, *objectSize-1) + 1
-		if start >= *objectSize {
-			break
 		}
 	}
 
@@ -117,7 +110,7 @@ func CalculateBasicHashes(client *AwsClient, bucket string, key string) (*HashIn
 // UpdateBasicHashes updates a hashes collection
 func UpdateBasicHashes(hashCollection *HashCollection, rd []byte) (*HashCollection, error) {
 
-	hashCollection.Reset()
+	//hashCollection.Reset()
 	multiWriter := io.MultiWriter(hashCollection.Crc32c, hashCollection.Md5, hashCollection.Sha1, hashCollection.Sha256, hashCollection.Sha512)
 	_, err := multiWriter.Write(rd)
 
